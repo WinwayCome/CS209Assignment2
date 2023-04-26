@@ -7,7 +7,7 @@ public class User implements Serializable
 {
     private String name;
     private String password;
-    private ArrayList<ChatMessage> chatHistory;
+    public ArrayList<ChatMessage> chatHistory;
     
     public User(String name, String password, ArrayList<ChatMessage> chatHistory)
     {

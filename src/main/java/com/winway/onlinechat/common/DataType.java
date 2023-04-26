@@ -1,6 +1,8 @@
 package com.winway.onlinechat.common;
 
-public enum DataType
+import java.io.Serializable;
+
+public enum DataType implements Serializable
 {
-    MESSAGE, CHECK, SHUTDOWN, FILE;
+    MESSAGE, CHECK, SHUTDOWN, FILE, ASK, EMPTY;
 }

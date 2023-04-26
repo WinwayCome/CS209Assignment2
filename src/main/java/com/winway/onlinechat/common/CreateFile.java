@@ -7,12 +7,14 @@ import java.util.ArrayList;
 
 public class CreateFile
 {
-    public static void main(String[] args) throws IOException
+    public static void main(String[] args) throws IOException, ClassNotFoundException
     {
         ArrayList<User> a = new ArrayList<>();
         a.add(new User("admin", "admin", new ArrayList<>()));
         a.add(new User("test1", "test1", new ArrayList<>()));
         a.add(new User("test2", "test2", new ArrayList<>()));
         ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream("Users.dat"));
+        outputStream.writeObject(a);
+        outputStream.flush();
     }
 }

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="400.0" prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/19">
+    <children>
+        <AnchorPane fx:id="LOGINPANE" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0"
+                    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <TextField fx:id="NAMEFIELD" layoutX="249.0" layoutY="188.0"/>
+                <Label layoutX="189.0" layoutY="192.0" text="Name"/>
+                <Label layoutX="179.0" layoutY="233.0" text="Password"/>
+                <PasswordField fx:id="PASSFIELD" layoutX="249.0" layoutY="229.0"/>
+                <Label layoutX="235.0" layoutY="95.0" prefHeight="64.0" prefWidth="130.0" text="Login Page">
+                    <font>
+                        <Font size="23.0"/>
+                    </font>
+                </Label>
+                <Button fx:id="LOGINPRESS" layoutX="275.0" layoutY="266.0" mnemonicParsing="false"
+                        onAction="#onLoginButton" text="Login"/>
+            </children>
+        </AnchorPane>
+        <AnchorPane fx:id="MAINPANE" layoutX="10.0" layoutY="10.0" prefHeight="410.0" prefWidth="610.0"
+                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                    AnchorPane.topAnchor="0.0">
+            <children>
+                <Button fx:id="FILEBUTTON" layoutX="540.0" layoutY="339.0" mnemonicParsing="false" text="文件"/>
+                <Button fx:id="EMOJIBUTTON" layoutX="540.0" layoutY="314.0" mnemonicParsing="false" text="表情"/>
+                <Button fx:id="SENDBUTTON" layoutX="540.0" layoutY="364.0" mnemonicParsing="false"
+                        onAction="#onSendButton" text="发送"/>
+                <TextArea fx:id="WRITEAREA" layoutX="252.0" layoutY="314.0" prefHeight="74.0" prefWidth="287.0"/>
+                <ListView fx:id="CURRENTLIST" layoutX="22.0" layoutY="65.0" prefHeight="314.0" prefWidth="200.0"/>
+                <TextArea fx:id="SHOWAREA" layoutX="252.0" layoutY="66.0" prefHeight="227.0" prefWidth="287.0"/>
+                <Button fx:id="CREATECHAT" layoutX="162.0" layoutY="25.0" mnemonicParsing="false"
+                        onAction="#onCreateButton" text="Create"/>
+                <MenuBar layoutX="14.0" layoutY="24.0" onMouseClicked="#onMenuButton" onMouseEntered="#onMenuButton">
+                    <menus>
+                        <Menu mnemonicParsing="false" onAction="#onMenuButton" text="ONLINEUSER">
+                            <items>
+                                <CheckMenuItem fx:id="select1" mnemonicParsing="false" text="Unspecified Action"/>
+                                <CheckMenuItem fx:id="select2" mnemonicParsing="false" text="Unspecified Action"/>
+                                <CheckMenuItem fx:id="select3" mnemonicParsing="false" text="Unspecified Action"/>
+                                <CheckMenuItem fx:id="select4" mnemonicParsing="false" text="Unspecified Action"/>
+                            </items>
+                        </Menu>
+                    </menus>
+                </MenuBar>
+                <TextField fx:id="USERNAME" layoutX="252.0" layoutY="1.0" prefHeight="26.0" prefWidth="287.0"/>
+                <TextField fx:id="NEWMESSAGE" layoutX="252.0" layoutY="35.0" prefHeight="26.0" prefWidth="287.0"/>
+            </children>
+        </AnchorPane>
+    </children>
+</AnchorPane>
