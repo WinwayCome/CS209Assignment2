@@ -10,7 +10,8 @@ public class ChatMessage implements Serializable
     private final ArrayList<String> to;
     private final String text;
     private final String from;
-    private String chatName;
+    private final String chatName;
+    private String receiver;
     
     public ChatMessage(Date time, String chatName, String text, String from, ArrayList<String> to)
     {
@@ -21,14 +22,19 @@ public class ChatMessage implements Serializable
         this.to = to;
     }
     
-    public ChatMessage(ChatMessage chatMessageAll, String chatName)
+    public ChatMessage(ChatMessage chatMessage, String receiver)
     {
-        this.time = chatMessageAll.time;
-        this.chatName = chatMessageAll.chatName;
-        this.from = chatMessageAll.from;
-        this.to = new ArrayList<>();
-        this.to.add(chatName);
-        this.text = chatMessageAll.text;
+        this.time = chatMessage.getTime();
+        this.chatName = chatMessage.getChatName();
+        this.text = chatMessage.getText();
+        this.from = chatMessage.getFrom();
+        this.to = chatMessage.getTo();
+        this.receiver = receiver;
+    }
+    
+    public String getReceiver()
+    {
+        return receiver;
     }
     
     public Date getTime()
@@ -49,11 +55,6 @@ public class ChatMessage implements Serializable
     public String getFrom()
     {
         return from;
-    }
-    
-    public void setChatName(String chatName)
-    {
-        this.chatName = chatName;
     }
     
     public ArrayList<String> getTo()

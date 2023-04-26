@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 public class User implements Serializable
 {
-    private String name;
-    private String password;
+    private final String name;
+    private final String password;
     public ArrayList<ChatMessage> chatHistory;
     
     public User(String name, String password, ArrayList<ChatMessage> chatHistory)
@@ -14,12 +14,6 @@ public class User implements Serializable
         this.name = name;
         this.password = password;
         this.chatHistory = chatHistory;
-    }
-    
-    public User(String name, String password)
-    {
-        this.name = name;
-        this.password = password;
     }
     
     public String getPassword()

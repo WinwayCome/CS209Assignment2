@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 public class ServerCore
 {
     public static ConcurrentHashMap<String, User> userCheckMap;
-    static ServerSocket server;
-    static ConcurrentHashMap<String, User> currentUsers;
-    static ArrayList<User> logUsers;
-    static ArrayBlockingQueue<ChatMessage> actions;
+    public static ServerSocket server;
+    public static ConcurrentHashMap<String, User> currentUsers;
+    public static ArrayList<User> logUsers;
+    public static ArrayBlockingQueue<ChatMessage> actions;
     
     public ServerCore() throws IOException, ClassNotFoundException
     {
@@ -29,7 +29,7 @@ public class ServerCore
         ObjectInputStream userInputStream = new ObjectInputStream(new FileInputStream("Users.dat"));
         logUsers = (ArrayList<User>) userInputStream.readObject();
         userCheckMap = new ConcurrentHashMap<>(logUsers.stream().collect(Collectors.toMap(User::getName, Function.identity())));
-        actions = new ArrayBlockingQueue<>(10000);
+        actions = new ArrayBlockingQueue<>(5000);
     }
     
     public void serverCoreThread()
@@ -37,6 +37,7 @@ public class ServerCore
         try
         {
             System.out.println("Server Listening...");
+            //noinspection InfiniteLoopStatement
             while(true)
             {
                 Socket cur_connection = server.accept();
@@ -48,7 +49,8 @@ public class ServerCore
         }
         catch(IOException e)
         {
-            e.printStackTrace();
+            System.out.println("Print IOException");
+            //e.printStackTrace();
         }
     }
 }

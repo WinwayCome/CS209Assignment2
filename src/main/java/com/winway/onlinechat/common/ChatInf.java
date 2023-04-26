@@ -9,7 +9,7 @@ public class ChatInf
     ArrayList<ChatMessage> chatMessages;
     Date lastDate;
     String chatName;
-    ArrayList<String> users = new ArrayList<>();
+    ArrayList<String> users;
     
     public ChatInf(ChatMessage chat)
     {
@@ -17,6 +17,7 @@ public class ChatInf
         this.chatMessages.add(chat);
         this.lastDate = chat.getTime();
         this.chatName = chat.getChatName();
+        this.users = chat.getTo();
     }
     
     public ChatInf()
@@ -43,11 +44,6 @@ public class ChatInf
     public ArrayList<ChatMessage> getChatMessages()
     {
         return chatMessages;
-    }
-    
-    public Date getLastDate()
-    {
-        return lastDate;
     }
     
     public String getChatName()

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ public class ServerSingleThread extends Thread
     boolean connect = true;
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
+    private boolean CANACCEPT = false;
     
     public ServerSingleThread(Socket linkSocket) throws IOException
     {
@@ -43,11 +45,13 @@ public class ServerSingleThread extends Thread
     
     private void listen()
     {
+        System.out.println("check point listen");
         DataType currentData;
         try
         {
             if(connect && singleSocket.isConnected() && (currentData = (DataType) inputStream.readObject()) != null)
             {
+                System.out.println("check point listening");
                 switch(currentData)
                 {
                     case CHECK ->
@@ -68,18 +72,13 @@ public class ServerSingleThread extends Thread
                     }
                     case MESSAGE ->
                     {
-                        ChatMessage chatMessage = (ChatMessage) inputStream.readObject();
-                        for(String receive : chatMessage.getTo())
-                        {
-                            User recUser;
-                            if((recUser = ServerCore.userCheckMap.get(receive)) != null)
-                            {
-                                recUser.chatHistory.add(chatMessage);
-                                ServerCore.userCheckMap.put(receive, recUser);
-                                ServerCore.actions.add(new ChatMessage(chatMessage, receive));
-                            }
-                        }
-                        
+                        System.out.println("Server read");
+                        ChatMessage action = (ChatMessage) inputStream.readObject();
+                        System.out.printf("Thread: %s, Action: %s, %s, %s, %s\n", this.getName(), action.getChatName(), action.getFrom(), action.getTo(), action.getText());
+                        System.out.println("Server read done");
+                        for(String receive : action.getTo())
+                            ServerCore.actions.add(new ChatMessage(action, receive));
+                
                     }
                     case SHUTDOWN ->
                     {
@@ -92,8 +91,14 @@ public class ServerSingleThread extends Thread
                         System.out.println("Ask Users");
                         queue.add(DataType.ASK);
                     }
+                    case ACCEPT -> this.CANACCEPT = true;
                 }
             }
+            System.out.println("Check point listen down");
+        }
+        catch(SocketException es)
+        {
+            System.exit(0);
         }
         catch(IOException | ClassNotFoundException e)
         {
@@ -105,19 +110,24 @@ public class ServerSingleThread extends Thread
     {
         try
         {
-            for(ChatMessage action : ServerCore.actions)
+            if(CANACCEPT) for(ChatMessage action : ServerCore.actions)
             {
-                if(action.getTo().get(0).equals(this.getName()))
+                System.out.printf("Thread: %s, Action: %s, %s, %s, %s\n", this.getName(), action.getChatName(), action.getFrom(), action.getTo(), action.getText());
+                if(action.getReceiver().equals(this.getName()))
                 {
                     outputStream.writeObject(DataType.MESSAGE);
                     outputStream.writeObject(action);
-                    ServerCore.actions.remove(action);
+                    if(ServerCore.actions.remove(action))
+                        System.out.printf("Thread: %s, Remove Action: %s, %s, %s, %s\n", this.getName(), action.getChatName(), action.getFrom(), action.getTo(), action.getText());
                     outputStream.flush();
                 }
             }
+            //System.out.println("Check Point");
             while(!queue.isEmpty())
             {
+                System.out.println("Check Point in queue");
                 DataType link = (DataType) queue.poll(5000, TimeUnit.SECONDS);
+                System.out.println("Check Point after poll");
                 if(link != null)
                 {
                     switch(link)
@@ -132,7 +142,7 @@ public class ServerSingleThread extends Thread
                         case CHECK ->
                         {
                             outputStream.writeObject(DataType.CHECK);
-                            if((Boolean) queue.poll(5000, TimeUnit.SECONDS))
+                            if(queue.poll(5000, TimeUnit.SECONDS) == Boolean.TRUE)
                             {
                                 outputStream.writeBoolean(true);
                                 outputStream.writeObject(queue.poll(5000, TimeUnit.SECONDS));
@@ -142,6 +152,7 @@ public class ServerSingleThread extends Thread
                     }
                 }
             }
+            //System.out.println("Check Point after while.");
         }
         catch(IOException | InterruptedException e)
         {

@@ -15,7 +15,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -23,42 +22,24 @@ public class LoginController
 {
     public static ArrayList<User> currentList = new ArrayList<>();
     @FXML
-    public AnchorPane LOGINPANE;
+    public AnchorPane LOGINPANE, MAINPANE;
     @FXML
-    public TextField NAMEFIELD;
+    public TextField NAMEFIELD, USERNAME, NEWMESSAGE;
     @FXML
     public PasswordField PASSFIELD;
     @FXML
-    public Button LOGINPRESS;
+    public Button LOGINPRESS, FILEBUTTON, SENDBUTTON, CREATECHAT, SIGNPRESS;
     @FXML
-    public AnchorPane MAINPANE;
-    @FXML
-    public Button FILEBUTTON;
-    @FXML
-    public Button SENDBUTTON;
-    @FXML
-    public Button EMOJIBUTTON;
-    @FXML
-    public TextArea WRITEAREA;
-    @FXML
-    public TextArea SHOWAREA;
+    public TextArea WRITEAREA, SHOWAREA;
     @FXML
     public ListView<String> CURRENTLIST;
     @FXML
     public Menu ONLINEUSER;
     @FXML
-    public Button CREATECHAT;
-    @FXML
     public CheckMenuItem select1, select2, select3, select4;
-    @FXML
-    public Button A, B, C, D;
-    @FXML
-    public TextField USERNAME;
-    @FXML
-    public TextField NEWMESSAGE;
     ClientCore client;
     ConcurrentHashMap<String, ChatInf> chatInfArrayList = new ConcurrentHashMap<>();
-    String currentText = " ";
+    String index_pre = null;
     
     public LoginController()
     {
@@ -67,12 +48,14 @@ public class LoginController
     }
     
     @FXML
-    public void onLoginButton() throws IOException, ClassNotFoundException
+    public void onLoginButton() throws IOException
     {
         if(NAMEFIELD.getText() != null && PASSFIELD.getText() != null && !NAMEFIELD.getText().isEmpty() && !PASSFIELD.getText().isEmpty())
         {
             if(client.checkID(NAMEFIELD.getText(), PASSFIELD.getText()))
             {
+                this.client.outputStream.writeObject(DataType.ACCEPT);
+                this.client.outputStream.flush();
                 LOGINPANE.setVisible(false);
                 MAINPANE.setVisible(true);
                 for(ChatMessage curCheck : client.getUser().getChatHistory())
@@ -80,24 +63,32 @@ public class LoginController
                     if(chatInfArrayList.containsKey(curCheck.getChatName()))
                     {
                         chatInfArrayList.get(curCheck.getChatName()).add(curCheck);
-                    } else
-                    {
-                        chatInfArrayList.put(curCheck.getChatName(), new ChatInf(curCheck));
-                    }
+                    } else throw new IOException();
                 }
             }
         }
     }
     
     @FXML
-    public void onSendButton() throws IOException
+    public void onSendButton()
     {
         if(WRITEAREA.getText().isEmpty()) return;
         System.out.println("Send begin.");
+        if(CURRENTLIST.getSelectionModel().getSelectedItem() == null)
+        {
+            System.out.println("Select no");
+            return;
+        }
         ChatMessage message = new ChatMessage(new Date(), CURRENTLIST.getSelectionModel().getSelectedItem(), WRITEAREA.getText(), this.client.getUser().getName(), chatInfArrayList.get(CURRENTLIST.getSelectionModel().getSelectedItem()).getUsers());
         System.out.println("Send message.");
         client.sendMessage(message);
         WRITEAREA.clear();
+    }
+    
+    @FXML
+    public void onSignbutton()
+    {
+    
     }
     
     @FXML
@@ -134,37 +125,15 @@ public class LoginController
     public void onCreateButton()
     {
         ArrayList<User> arrayList = new ArrayList<>();
-        if(select1.isSelected())
-        {
-            for(User user : currentList)
-            {
-                if(user.getName().equals(select1.getText())) arrayList.add(user);
-            }
-        }
-        if(select2.isSelected())
-        {
-            for(User user : currentList)
-            {
-                if(user.getName().equals(select2.getText())) arrayList.add(user);
-            }
-        }
-        if(select3.isSelected())
-        {
-            for(User user : currentList)
-            {
-                if(user.getName().equals(select3.getText())) arrayList.add(user);
-            }
-        }
-        if(select4.isSelected())
-        {
-            for(User user : currentList)
-            {
-                if(user.getName().equals(select4.getText())) arrayList.add(user);
-            }
-        }
-        for(User a : arrayList)
-            if(a.getName().equals(this.client.getName())) arrayList.remove(a);
-        
+        if(select1.isSelected()) for(User user : currentList)
+            if(user.getName().equals(select1.getText())) arrayList.add(user);
+        if(select2.isSelected()) for(User user : currentList)
+            if(user.getName().equals(select2.getText())) arrayList.add(user);
+        if(select3.isSelected()) for(User user : currentList)
+            if(user.getName().equals(select3.getText())) arrayList.add(user);
+        if(select4.isSelected()) for(User user : currentList)
+            if(user.getName().equals(select4.getText())) arrayList.add(user);
+        arrayList.removeIf(a -> a.getName().equals(this.client.getName()));
         if(arrayList.size() == 0) return;
         arrayList.add(this.client.getUser());
         arrayList.sort(Comparator.comparingInt(o -> o.getName().hashCode()));
@@ -189,6 +158,7 @@ public class LoginController
             show(name.toString());
         } else
         {
+            if(index_pre == null) index_pre = name.toString();
             chatInfArrayList.put(name.toString(), new ChatInf(name.toString(), arrayList));
             CURRENTLIST.getItems().clear();
             CURRENTLIST.setItems(FXCollections.observableList(chatInfArrayList.values().stream().map(ChatInf::getChatName).collect(Collectors.toList())));
@@ -213,7 +183,6 @@ public class LoginController
             stringBuilder.append(chatLink.getFrom()).append(":\n").append(chatLink.getTime()).append("\n").append(chatLink.getText()).append("\n\n");
         }
         SHOWAREA.setText(stringBuilder.toString());
-        currentText = stringBuilder.toString();
         System.out.println("Show Info");
         StringBuilder sb = new StringBuilder();
         chatInfArrayList.get(chatName).getUsers().forEach(x -> sb.append(x).append(" "));
@@ -233,14 +202,15 @@ public class LoginController
         CURRENTLIST.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
         {
             System.out.println("Select" + newValue);
+            if(newValue != null) index_pre = newValue;
             show(newValue);
         });
         USERNAME.setEditable(false);
+        NEWMESSAGE.setEditable(false);
     }
     
     public class ClientCore extends Thread
     {
-        public ArrayBlockingQueue<ChatMessage> actions = new ArrayBlockingQueue<>(5000);
         ObjectInputStream inputStream;
         ObjectOutputStream outputStream;
         private Socket client;
@@ -250,11 +220,14 @@ public class LoginController
         {
             try
             {
-                outputStream.writeObject(DataType.SHUTDOWN);
-                outputStream.flush();
-                client.close();
-                outputStream.close();
-                inputStream.close();
+                if(outputStream != null)
+                {
+                    outputStream.writeObject(DataType.SHUTDOWN);
+                    outputStream.flush();
+                    outputStream.close();
+                }
+                if(client != null && client.isConnected()) client.close();
+                if(inputStream != null) inputStream.close();
             }
             catch(IOException IOe)
             {
@@ -262,13 +235,13 @@ public class LoginController
                 IOe.printStackTrace();
             }
         }
-        
-        public synchronized boolean sendMessage(ChatMessage message) throws IOException
+    
+        public synchronized void sendMessage(ChatMessage message)
         {
             if(client == null || !client.isConnected())
             {
                 System.out.println("Cannot connect to the server.");
-                return false;
+                return;
             }
             System.out.println("Send message in core.");
             try
@@ -281,7 +254,6 @@ public class LoginController
             {
                 throw new RuntimeException(e);
             }
-            return true;
         }
         
         public User getUser()
@@ -306,8 +278,8 @@ public class LoginController
                 throw new RuntimeException(e);
             }
         }
-        
-        public synchronized boolean checkID(String name, String password) throws IOException, ClassNotFoundException
+    
+        public synchronized boolean checkID(String name, String password)
         {
             if(client == null || !client.isConnected())
             {
@@ -320,10 +292,15 @@ public class LoginController
                 User loginUser = new User(name, password, new ArrayList<>());
                 outputStream.writeObject(loginUser);
                 outputStream.flush();
-                if(inputStream.readObject().equals(DataType.CHECK))
+                DataType dataType;
+                if((dataType = (DataType) inputStream.readObject()).equals(DataType.CHECK))
                 {
                     if(inputStream.readBoolean()) this.user = (User) inputStream.readObject();
-                } else throw new IOException();
+                } else
+                {
+                    System.out.println(dataType);
+                    System.exit(5);
+                }
                 if(this.user != null)
                 {
                     System.out.println("find user");
@@ -374,7 +351,7 @@ public class LoginController
                 }
                 if(this.getUser() == null) continue;
                 System.out.println("us");
-                DataType dataType = null;
+                DataType dataType;
                 try
                 {
                     if((dataType = (DataType) inputStream.readObject()) != null)
@@ -392,13 +369,15 @@ public class LoginController
                                 System.out.println(chatMessage.getTime());
                                 System.out.println();
                                 System.out.println("Check local");
-                                if(LoginController.this.chatInfArrayList.contains(chatMessage.getChatName()))
+                                if(LoginController.this.chatInfArrayList.containsKey(chatMessage.getChatName()))
                                 {
                                     System.out.println("Local yes");
                                     ChatInf link = LoginController.this.chatInfArrayList.get(chatMessage.getChatName());
-                                    System.out.println("Find origin data");
+                                    System.out.println("Before: " + link.getChatMessages().size());
                                     link.add(chatMessage);
-                                    LoginController.this.chatInfArrayList.put(chatMessage.getChatName(), link);
+                                    System.out.println("After: " + link.getChatMessages().size());
+                                    LoginController.this.chatInfArrayList.replace(chatMessage.getChatName(), link);
+                                    System.out.println(LoginController.this.chatInfArrayList.get(chatMessage.getChatName()).getChatMessages().size());
                                     System.out.println("Update down");
                                 } else
                                 {
@@ -413,7 +392,7 @@ public class LoginController
                                     CURRENTLIST.refresh();
                                     
                                     System.out.println("Reoutput down");
-                                    if(CURRENTLIST.getSelectionModel().getSelectedItem() != null && CURRENTLIST.getSelectionModel().getSelectedItem().equals(chatMessage.getChatName()))
+                                    if(index_pre != null && index_pre.equals(chatMessage.getChatName()))
                                     {
                                         System.out.println("Show begin");
                                         show(chatMessage.getChatName());
@@ -442,9 +421,8 @@ public class LoginController
                 }
                 catch(IOException | ClassNotFoundException e)
                 {
-                    //do nothing
+                    SHOWAREA.setText("Server is broken.");
                 }
-                
             }
         }
     }

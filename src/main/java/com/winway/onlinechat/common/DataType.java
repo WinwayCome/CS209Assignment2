@@ -4,5 +4,5 @@ import java.io.Serializable;
 
 public enum DataType implements Serializable
 {
-    MESSAGE, CHECK, SHUTDOWN, FILE, ASK, EMPTY;
+    MESSAGE, CHECK, SHUTDOWN, FILE, ASK, SIGN, ACCEPT
 }
